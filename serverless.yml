@@ -49,7 +49,63 @@ functions:
     events:
       - http:
           path: /
-          method: any
+          method: GET
+          cors: true
+  todoGet:
+    handler: src/api/todo.todoGet
+    name: todo-get
+    description: Create a todo using GET
+    runtime: nodejs14.x
+    memorySize: 512
+    timeout: 10
+    provisionedConcurrency: 3
+    reservedConcurrency: 5
+    events:
+      - http:
+          path: /todo
+          method: GET
+          cors: true
+  todoPost:
+    handler: src/api/todo.todoPost
+    name: todo-post
+    description: Create a todo using POST
+    runtime: nodejs14.x
+    memorySize: 512
+    timeout: 10
+    provisionedConcurrency: 3
+    reservedConcurrency: 5
+    events:
+      - http:
+          path: /todo
+          method: POST
+          cors: true
+  todoPut:
+    handler: src/api/todo.todoPut
+    name: todo-put
+    description: Create a todo using PUT
+    runtime: nodejs14.x
+    memorySize: 512
+    timeout: 10
+    provisionedConcurrency: 3
+    reservedConcurrency: 5
+    events:
+      - http:
+          path: /todo/{id}
+          method: PUT
+          cors: true
+  todoDelete:
+    handler: src/api/todo.todoDelete
+    name: todo-delete
+    description: Create a todo using DELETE
+    runtime: nodejs14.x
+    memorySize: 512
+    timeout: 10
+    provisionedConcurrency: 3
+    reservedConcurrency: 5
+    events:
+      - http:
+          path: /todo/{id}
+          method: DELETE
           cors: true
 
 custom:
