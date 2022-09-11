@@ -19,7 +19,6 @@ const errorJsonResponse = (statusCode: number, body: any) => ({
 
 export const todoGet = async () => {
   const allTodos = await TodoPgModel.getAll();
-  console.log('allTodos', allTodos);
   return successJsonResponse(allTodos);
 };
 

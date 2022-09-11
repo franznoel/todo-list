@@ -1,18 +1,13 @@
 import "./App.css";
 import * as React from 'react';
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
-import { Card, CardContent, Typography } from "@mui/material";
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { Typography } from "@mui/material";
 import { iTodo } from "@interfaces/iTodo";
+import { useQuery } from "react-query";
 
 const columns: GridColDef[] = [
-  { field: 'id', headerName: 'ID', width: 70 },
-  { field: 'description', headerName: 'Description', width: 500 },
-];
-
-const todoRows: iTodo[] = [
-  { id: '1', isDone: false, description: "Buy banana for the monkey" },
-  { id: '2', isDone: false, description: "Do oil change for Mercedes Benz" },
-  { id: '3', isDone: false, description: "Finish code assessments" }
+  // { field: 'id', headerName: 'ID', width: 300 },
+  { field: 'description', headerName: 'Description', width: 700 },
 ];
 
 const initTodo = (todoRows: iTodo[]) => {
@@ -29,14 +24,31 @@ const todoReducer = (todoState: iTodo[], todoAction: any) => {
 }
 
 export default function App() {
-  let initialTodo: iTodo[] = todoRows;
-  const [todoState, dispatchTodo] = React.useReducer(todoReducer, initialTodo, initTodo);
+  const { isLoading, error, data: initialTodos } = useQuery('todos', async () => {
+    const res = await fetch(`${window.location.origin}/todo`);
+    return res.json();
+  });
+
+  if (isLoading) {
+    return (
+      <div>Loading...</div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>Error Loading</div>
+    )
+  }
+
+  console.log('todoState', initialTodos);
+  // const [todoState, dispatchTodo] = React.useReducer(todoReducer, initialTodos, initTodo);
 
   return (
     <div style={{ height: 500, width: 700, margin: 10 }}>
       <Typography variant="h2">Todo</Typography>
       <DataGrid
-        rows={todoState}
+        rows={initialTodos}
         columns={columns}
         checkboxSelection
         hideFooter
