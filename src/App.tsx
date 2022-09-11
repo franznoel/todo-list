@@ -1,24 +1,30 @@
 import "./App.css";
+import * as React from 'react';
+import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+import { Card, CardContent, Typography } from "@mui/material";
 
-import * as React from "react";
+const columns: GridColDef[] = [
+  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'description', headerName: 'Description', width: 500 },
+];
 
-import useConfig from "./components/useConfig";
-import logo from "./logo.svg";
+const rows = [
+  { id: 1, isDone: false, description: "Buy banana for the monkey" },
+  { id: 2, isDone: false, description: "Do oil change for Mercedes Benz" },
+  { id: 3, isDone: false, description: "Finish code assessment" }
+];
 
-/**
- * Our Web Application
- */
 export default function App() {
-  const config = useConfig();
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1 className="App-title">Welcome to {config.app.TITLE}</h1>
-      </header>
-      <p className="App-intro">
-        To get started, edit <code>src/App.tsx</code> and save to reload.
-      </p>
+    <div style={{ height: 500, width: 700, margin: 10 }}>
+      <Typography variant="h2">Todo</Typography>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        checkboxSelection
+        hideFooter
+        hideFooterPagination
+      />
     </div>
   );
 }
