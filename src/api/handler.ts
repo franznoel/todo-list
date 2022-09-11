@@ -4,7 +4,7 @@ import { Context, APIGatewayEvent, APIGatewayProxyResultV2 } from "aws-lambda";
 export const serve = async (event: APIGatewayEvent, _context: Context): Promise<APIGatewayProxyResultV2> => {
   try {
     // We use asynchronous import here so we can better catch server-side errors during development
-    const render = (await import("./src/server/render")).default;
+    const render = (await import("../server/render")).default;
     return {
       statusCode: 200,
       headers: {
@@ -25,3 +25,4 @@ export const serve = async (event: APIGatewayEvent, _context: Context): Promise<
     };
   }
 };
+
