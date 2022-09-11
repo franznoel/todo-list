@@ -1,4 +1,4 @@
-import { Todo } from '@interfaces/Todo';
+import { iTodo } from '@interfaces/iTodo';
 import knexDb from './pgKnex';
 
 const TodoPgModel = knexDb('todo');
@@ -8,14 +8,14 @@ const getAll = async () => {
   return allTodos;
 };
 
-const add = async (newTodo: Todo) => {
+const add = async (newTodo: iTodo) => {
   const insertedTodo = await TodoPgModel
     .returning(['id', 'description'])
     .insert(newTodo);
   return insertedTodo;
 };
 
-const update = async (todoId: string, todoEdit: Todo) => {
+const update = async (todoId: string, todoEdit: iTodo) => {
   const updatedTodo = await TodoPgModel
     .returning(['id', 'description'])
     .where({ id: todoId })
