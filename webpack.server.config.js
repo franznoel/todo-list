@@ -1,5 +1,6 @@
 const path = require("path");
 const slsw = require("serverless-webpack");
+const nodeExternals = require("webpack-node-externals");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 
 module.exports = {
@@ -19,6 +20,8 @@ module.exports = {
     hints: false,
   },
   devtool: "nosources-source-map",
+  externalsPresets: { node: true },
+  externals: [nodeExternals()],
   module: {
     rules: [
       {
@@ -38,7 +41,9 @@ module.exports = {
   },
   resolve: {
     // TsconfigPathsPlugin applies the path aliases defined in `.tsconfig.json`
-    plugins: [new TsconfigPathsPlugin()],
+    plugins: [
+      new TsconfigPathsPlugin()
+    ],
     extensions: [".server.tsx", ".server.ts", ".server.jsx", ".server.js", ".tsx", ".ts", ".jsx", ".js"],
   },
   output: {

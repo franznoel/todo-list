@@ -1,5 +1,5 @@
 ---
-service: serverless-react-boilerplate
+service: todo-list
 frameworkVersion: "3"
 useDotenv: true
 variablesResolutionMode: 20210326
@@ -133,6 +133,7 @@ custom:
 
   webpack:
     webpackConfig: "webpack.server.config.js"
+    includeModules: true
 
   assets:
     # Automatically copy distribution folder to S3 stopped working; do it manually (see `scripts.hooks.deploy:finalize`)

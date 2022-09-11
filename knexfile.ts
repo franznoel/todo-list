@@ -11,7 +11,7 @@ const config: { [key: string]: Knex.Config } = {
   },
 
   development: {
-    client: "postgresql",
+    client: "pg",
     connection: {
       database: "todoApp",
       user: "admin",
@@ -27,7 +27,7 @@ const config: { [key: string]: Knex.Config } = {
   },
 
   staging: {
-    client: "postgresql",
+    client: "pg",
     connection: {
       database: "my_db",
       user: "username",
@@ -43,7 +43,7 @@ const config: { [key: string]: Knex.Config } = {
   },
 
   production: {
-    client: "postgresql",
+    client: "pg",
     connection: {
       database: "my_db",
       user: "username",
