@@ -4,11 +4,6 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Alert, Button, Snackbar, TextField, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
-const columns: GridColDef[] = [
-  // { field: 'id', headerName: 'ID', width: 300 },
-  { field: 'description', headerName: 'Description', width: 700 },
-];
-
 const todoGet = async () => {
   const res = await fetch(`${window.location.origin}/todo`);
   return res.json();
@@ -19,6 +14,38 @@ const todoPost = async (newTodo: string) => {
   const res = await fetch(`${window.location.origin}/todo`, { method: 'POST', body });
   return res.json();
 };
+
+const todoDelete = async (todoId: string) => {
+  const res = await fetch(`${window.location.origin}/todo/${todoId}`, { method: 'DELETE' });
+  return res.json();
+};
+
+const columns: GridColDef[] = [
+  // { field: 'id', headerName: 'ID', width: 300 },
+  { field: 'description', headerName: 'Description', width: 700 },
+  { field: 'action', headerName: 'Action', width: 100,
+    renderCell: (params) => {
+      const queryClient = useQueryClient();
+      const todoDeleteMutation = useMutation(todoDelete, {
+        onSuccess: () => {
+          queryClient.invalidateQueries(['todos']);
+        }
+      });
+      const onClick = (e: any) => {
+        e.stopPropagation();
+        console.log('params', params);
+        const todoId = String(params.id);
+        todoDeleteMutation.mutate(todoId)
+      };
+      return (
+        <div>
+          <Typography variant="body1">{params.formattedValue}</Typography>
+          <Button onClick={onClick} variant="outlined">Delete</Button>
+        </div>
+      );
+    }
+  },
+];
 
 export default function App() {
   const [newTodo, setNewTodo] = React.useState("");
@@ -33,7 +60,7 @@ export default function App() {
     }
   });
 
-  if (todoGetQuery.isLoading || todoCreateMutation.isLoading) {
+  if (todoGetQuery.isLoading) {
     return (
       <div>Loading...</div>
     )
@@ -56,7 +83,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ height: 500, width: 700, margin: 10 }}>
+    <div style={{ height: 500, width: 900, margin: 10 }}>
       <Typography variant="h2">Todo</Typography>
       <div style={{ padding: '10px 0'}}>
         <form onSubmit={handleTodoSubmit}>
@@ -65,6 +92,8 @@ export default function App() {
             onChange={onNewTodoChange}
             label="Add Todo"
             variant="outlined"
+            defaultValue=""
+            value={newTodo}
             fullWidth
             InputProps={{endAdornment: <Button type="submit" variant="contained">Add</Button>}}
           />
