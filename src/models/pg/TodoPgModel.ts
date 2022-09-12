@@ -11,7 +11,10 @@ const getAll = async () => {
 const add = async (newTodo: iTodo) => {
   const insertedTodo = await TodoPgModel
     .returning(['id', 'description'])
-    .insert(newTodo);
+    .insert({
+      ...newTodo,
+      isDone: false,
+    });
   return insertedTodo;
 };
 
