@@ -1,7 +1,7 @@
 import "./App.css";
 import * as React from 'react';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Alert, Button, Snackbar, TextField, Typography } from "@mui/material";
+import { DataGrid, GridColDef, GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid';
+import { Alert, Button, OutlinedInput, Snackbar, TextField, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 const todoGet = async () => {
@@ -15,14 +15,64 @@ const todoPost = async (newTodo: string) => {
   return res.json();
 };
 
+const todoPut = async (todoParams: any) => {
+  const { id: todoId, description } = todoParams;
+  const body = JSON.stringify({ description });
+  const res = await fetch(`${window.location.origin}/todo/${todoId}`, { method: 'PUT', body });
+  return res.json();
+};
+
 const todoDelete = async (todoId: string) => {
   const res = await fetch(`${window.location.origin}/todo/${todoId}`, { method: 'DELETE' });
   return res.json();
 };
 
+function CustomEditDescriptionComponent(props: GridRenderEditCellParams) {
+  const queryClient = useQueryClient();
+  const apiRef = useGridApiContext();
+  const todoPutMutation = useMutation(todoPut, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['todos']);
+    }
+  });
+
+  const { id, formattedValue: previousDescription } = props;
+  const [updatedDescription, setUpdatedDescription] = React.useState(props.formattedValue);
+  const onNewTodoChange = (e: any) => setUpdatedDescription(e.target.value);
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    const field = 'description';
+    if (previousDescription !== updatedDescription) {
+      todoPutMutation.mutate({ id, description: updatedDescription });
+      apiRef.current.setEditCellValue({
+        id,
+        value: updatedDescription,
+        field,
+      });
+      apiRef.current.stopCellEditMode({ id, field});
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+      <OutlinedInput
+        id="new-todo-text"
+        onChange={onNewTodoChange}
+        value={updatedDescription}
+        fullWidth
+        endAdornment={<Button type="submit" variant="contained">Update</Button>}
+      />
+    </form>
+  );
+}
+
 const columns: GridColDef[] = [
   // { field: 'id', headerName: 'ID', width: 300 },
-  { field: 'description', headerName: 'Description', width: 700 },
+  { field: 'description', headerName: 'Description', width: 700, editable: true,
+    renderEditCell: (params: GridRenderEditCellParams) => {
+      return <CustomEditDescriptionComponent {...params} />;
+    }
+  },
   { field: 'action', headerName: 'Action', width: 100,
     renderCell: (params) => {
       const queryClient = useQueryClient();
@@ -33,7 +83,6 @@ const columns: GridColDef[] = [
       });
       const onClick = (e: any) => {
         e.stopPropagation();
-        console.log('params', params);
         const todoId = String(params.id);
         todoDeleteMutation.mutate(todoId)
       };
@@ -46,6 +95,7 @@ const columns: GridColDef[] = [
     }
   },
 ];
+
 
 export default function App() {
   const [newTodo, setNewTodo] = React.useState("");
@@ -92,7 +142,6 @@ export default function App() {
             onChange={onNewTodoChange}
             label="Add Todo"
             variant="outlined"
-            defaultValue=""
             value={newTodo}
             fullWidth
             InputProps={{endAdornment: <Button type="submit" variant="contained">Add</Button>}}
@@ -111,8 +160,10 @@ export default function App() {
         rows={todoList}
         columns={columns}
         checkboxSelection
+        disableSelectionOnClick
         hideFooter
         hideFooterPagination
+        experimentalFeatures={{ newEditingApi: true }}
       />
     </div>
   );
