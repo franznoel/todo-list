@@ -1,11 +1,12 @@
 import "./App.css";
 import * as React from 'react';
-import { DataGrid, GridColDef, GridRenderEditCellParams, useGridApiContext } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderEditCellParams, selectedGridRowsCountSelector, useGridApiContext } from '@mui/x-data-grid';
 import { Alert, Button, OutlinedInput, Snackbar, TextField, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { iTodo } from "@interfaces/iTodo";
 
 const todoGet = async () => {
-  const res = await fetch(`${window.location.origin}/todo`);
+  const res = await fetch(`${window.location.origin}/todo`, { method: 'GET' });
   return res.json();
 };
 
@@ -15,9 +16,16 @@ const todoPost = async (newTodo: string) => {
   return res.json();
 };
 
-const todoPut = async (todoParams: any) => {
+const todoPutDescription = async (todoParams: any) => {
   const { id: todoId, description } = todoParams;
   const body = JSON.stringify({ description });
+  const res = await fetch(`${window.location.origin}/todo/${todoId}`, { method: 'PUT', body });
+  return res.json();
+};
+
+const todoPutIsDone = async (todoParams: any) => {
+  const { id: todoId, isDone } = todoParams;
+  const body = JSON.stringify({ isDone });
   const res = await fetch(`${window.location.origin}/todo/${todoId}`, { method: 'PUT', body });
   return res.json();
 };
@@ -30,7 +38,7 @@ const todoDelete = async (todoId: string) => {
 function CustomEditDescriptionComponent(props: GridRenderEditCellParams) {
   const queryClient = useQueryClient();
   const apiRef = useGridApiContext();
-  const todoPutMutation = useMutation(todoPut, {
+  const todoPutDescriptionMutation = useMutation(todoPutDescription, {
     onSuccess: () => {
       queryClient.invalidateQueries(['todos']);
     }
@@ -43,7 +51,7 @@ function CustomEditDescriptionComponent(props: GridRenderEditCellParams) {
     e.preventDefault();
     const field = 'description';
     if (previousDescription !== updatedDescription) {
-      todoPutMutation.mutate({ id, description: updatedDescription });
+      todoPutDescriptionMutation.mutate({ id, description: updatedDescription });
       apiRef.current.setEditCellValue({
         id,
         value: updatedDescription,
@@ -109,6 +117,11 @@ export default function App() {
       setIsSnackbarOpen(true);
     }
   });
+  const todoPutIsDoneMutation = useMutation(todoPutIsDone, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['todos']);
+    }
+  });
 
   if (todoGetQuery.isLoading) {
     return (
@@ -122,7 +135,11 @@ export default function App() {
     )
   }
 
-  const todoList = todoGetQuery.data;
+  const allTodos = todoGetQuery.data;
+  const dbSelectedTodoIds = allTodos
+    .filter((todo: iTodo) => todo.isDone)
+    .map((todo: iTodo) => todo.id);
+
   const onNewTodoChange = (e: any) => setNewTodo(e.target.value);
   const handleTodoSubmit = (e: any) => {
     e.preventDefault();
@@ -131,6 +148,16 @@ export default function App() {
       setNewTodo("");
     }
   };
+
+  const onSelectionModelChange = (selectedTodoIds: string[]) => {
+    selectedTodoIds
+      .filter((selectedTodoId) => !dbSelectedTodoIds.includes(selectedTodoId))
+      .forEach((selectedTodoId) => todoPutIsDoneMutation.mutate({ id: selectedTodoId, isDone: true }));
+
+    dbSelectedTodoIds
+      .filter((dbSelectedTodoId: string) => !selectedTodoIds.includes(dbSelectedTodoId))
+      .forEach((dbSelectedTodoId: string) => todoPutIsDoneMutation.mutate({ id: dbSelectedTodoId, isDone: false }))
+  }
 
   return (
     <div style={{ height: 500, width: 900, margin: 10 }}>
@@ -157,10 +184,11 @@ export default function App() {
         <Alert severity="success">Successfully added or loaded Todo!</Alert>
       </Snackbar>
       <DataGrid
-        rows={todoList}
+        rows={allTodos}
         columns={columns}
+        onSelectionModelChange={onSelectionModelChange}
+        selectionModel={dbSelectedTodoIds}
         checkboxSelection
-        disableSelectionOnClick
         hideFooter
         hideFooterPagination
         experimentalFeatures={{ newEditingApi: true }}
